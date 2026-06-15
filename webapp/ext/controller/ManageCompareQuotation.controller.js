@@ -40,7 +40,7 @@ sap.ui.define(
       },
 
       onObjectMatched: async function (oEvent) {
-        debugger;
+        this.getView().setBusy(true);
         await this.resetLocalModel();
         const oArgs = oEvent.getParameter('arguments');
         let sCompareQuotationId = oArgs.key;
@@ -125,6 +125,7 @@ sap.ui.define(
             .getModel('LocalModel')
             .setProperty('/ActualSupplierQuotationItem', aSupplierQuotationItems || []);
         }
+        this.getView().setBusy(false);
       },
       onCQDynamicAddItemPress: async function () {
         const oCompareQuotationHeader = this.getView().getModel('LocalModel').getProperty('/CompareQuotationHeader');
@@ -223,6 +224,7 @@ sap.ui.define(
             this.getView().setBusy(false);
             sap.m.MessageToast.show(`Error on Create Quotation Comparison ${oResult?.message || oResult?.error}`);
           } else {
+            this.getView().getModel('LocalModel').setProperty('/IsEditCompareQuotation', false);
             this.getView().setBusy(false);
             if (sMode === 'CREATE') {
               window.history.go(-1);
@@ -231,10 +233,10 @@ sap.ui.define(
               sap.m.MessageToast.show('Quotation Created successfully', {
                 duration: 1000,
                 onClose: () => {
-                  this.getView()?.getModel('LocalModel')?.refresh();
                   // window.location.reload(true);
                   this.getView().getModel('LocalModel').setProperty('/IsEditCompareQuotation', false);
                   this.getView()?.setBusy(false);
+                  this.getView()?.getModel('LocalModel')?.refresh();
                 },
               });
             }
