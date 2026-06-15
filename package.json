@@ -14,7 +14,9 @@
     "@sap/ux-ui5-tooling": "1",
     "@ui5/cli": "^4.0.33",
     "eslint": "^10",
-    "mbt": "^1.2.49"
+    "mbt": "^1.2.49",
+    "ui5-task-zipper": "^3.4.x",
+    "rimraf": "^5.0.5"
   },
   "scripts": {
     "start": "fiori run --open \"/test/flpSandbox.html?sap-ui-xx-viewCache=false#nlabaiuicomparequotation-tile\"",
@@ -22,11 +24,14 @@
     "build": "ui5 build --config=ui5.yaml --clean-dest --dest dist",
     "lint": "eslint ./",
     "start-mock": "fiori run --config ./ui5-mock.yaml --open \"/test/flpSandbox.html?sap-ui-xx-viewCache=false#nlabaiuicomparequotation-tile\"",
-    "deploy": "fiori verify",
+    "deploy": "fiori cfDeploy",
     "deploy-config": "fiori add deploy-config",
     "start-noflp": "fiori run --open \"/index.html?sap-ui-xx-viewCache=false\"",
     "int-test": "fiori run --config ./ui5-mock.yaml --open \"/test/integration/opaTests.qunit.html\"",
-    "start-variants-management": "fiori run --open \"/preview.html?sap-ui-xx-viewCache=false&fiori-tools-rta-mode=true&sap-ui-rta-skip-flex-validation=true#nlabaiuicomparequotation-tile\""
+    "start-variants-management": "fiori run --open \"/preview.html?sap-ui-xx-viewCache=false&fiori-tools-rta-mode=true&sap-ui-rta-skip-flex-validation=true#nlabaiuicomparequotation-tile\"",
+    "build:cf": "ui5 build preload --clean-dest --config ui5-deploy.yaml --include-task=generateCachebusterInfo",
+    "build:mta": "rimraf resources mta_archives && mbt build",
+    "undeploy": "cf undeploy nlab-ai-uicomparequotation --delete-services --delete-service-keys --delete-service-brokers"
   },
   "sapuxLayer": "CUSTOMER_BASE",
   "sapux": true

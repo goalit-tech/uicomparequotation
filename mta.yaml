@@ -1,0 +1,93 @@
+_schema-version: "3.3"
+ID: nlab-ai-uicomparequotation
+version: 1.0.0
+
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+
+modules:
+
+  # UI5 Application
+  - name: nlab-ai-uicomparequotation
+    type: html5
+    path: .
+    build-parameters:
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      build-result: dist
+      supported-platforms: []
+
+  # Upload UI5 App to HTML5 Repository
+  - name: nlab-ai-uicomparequotation-content
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: nlab-ai-uicomparequotation-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - name: nlab-ai-uicomparequotation
+          artifacts:
+            - nlab-ai-uicomparequotation.zip
+          target-path: resources/
+
+  # App Router
+  - name: nlab-ai-uicomparequotation-approuter
+    type: approuter.nodejs
+    path: approuter
+    parameters:
+      memory: 256M
+      disk-quota: 256M
+    requires:
+      - name: nlab-ai-uicomparequotation-destination
+      - name: nlab-ai-uicomparequotation-repo-runtime
+
+resources:
+
+  # HTML5 App Repository Host
+  - name: nlab-ai-uicomparequotation-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+
+  # HTML5 App Repository Runtime
+  - name: nlab-ai-uicomparequotation-repo-runtime
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime
+
+  # Destination Service
+  - name: nlab-ai-uicomparequotation-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            existing_destinations_policy: update
+            destinations:
+
+              # UI5 CDN
+              - Name: ui5
+                URL: https://ui5.sap.com
+                Type: HTTP
+                ProxyType: Internet
+                Authentication: NoAuthentication
+
+              # S4 DESTINATION
+              - Name: S4_API
+                URL: https://my428743-api.s4hana.cloud.sap
+                Type: HTTP
+                ProxyType: Internet
+                Authentication: BasicAuthentication
+                HTML5.DynamicDestination: true
+                HTML5.ForwardAuthToken: false
