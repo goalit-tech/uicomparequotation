@@ -1,5 +1,9 @@
 sap.ui.define(
-  ['sap/fe/core/PageController', 'nlab/ai/uicomparequotation/ext/utils/utils', 'nlab/ai/uicomparequotation/ext/utils/oDataServiceUtil'],
+  [
+    'sap/fe/core/PageController',
+    'nlab/ai/uicomparequotation/ext/utils/utils',
+    'nlab/ai/uicomparequotation/ext/utils/oDataServiceUtil',
+  ],
   function (PageController, Utils, ODataServiceUtil) {
     'use strict';
 
@@ -66,7 +70,8 @@ sap.ui.define(
           const oCompareQuotationHeader = this.getView().getModel('LocalModel').getProperty('/CompareQuotationHeader');
           oCompareQuotationHeader.QuotationComparison = '';
           oCompareQuotationHeader.RequestForQuotation = oQuery?.RequestForQuotation || '';
-          oCompareQuotationHeader.RequisitionNumber = oSelectedRFQForComparison?.to_RequestForQuotationItem[0]?.PurchaseRequisition || '';
+          oCompareQuotationHeader.RequisitionNumber =
+            oSelectedRFQForComparison?.to_RequestForQuotationItem[0]?.PurchaseRequisition || '';
           oCompareQuotationHeader.CompativeStatementTitle = 'New Quotation Comparison';
           oCompareQuotationHeader.CompanyCode = aSupplierQuotation[0]?.CompanyCode || '';
           oCompareQuotationHeader.CompanyName = aSupplierQuotation[0]?.CompanyCodeName || '';
@@ -74,7 +79,9 @@ sap.ui.define(
 
           this.getView().getModel('LocalModel').setProperty('/IsEditCompareQuotation', true);
           this.getView().getModel('LocalModel').setProperty('/RequestForQuotation', oSelectedRFQForComparison);
-          this.getView().getModel('LocalModel').setProperty('/RequestForQuotationItem', oSelectedRFQForComparison?.to_RequestForQuotationItem);
+          this.getView()
+            .getModel('LocalModel')
+            .setProperty('/RequestForQuotationItem', oSelectedRFQForComparison?.to_RequestForQuotationItem);
           this.getView().getModel('LocalModel').setProperty('/CompareQuotationHeader', oCompareQuotationHeader);
           this.getView().getModel('LocalModel').setProperty('/SupplierQuotation', aSupplierQuotationData);
           this.getView().getModel('LocalModel').setProperty('/SupplierQuotationItem', aSupplierQuotationItems);
@@ -91,27 +98,44 @@ sap.ui.define(
               ? oCompareQuotationHeader.RequisitionDate
               : new Date(oCompareQuotationHeader.RequisitionDate)
             : null;
-          const oSelectedRFQForComparison = await Utils.getRequestForQuotation(oCompareQuotationHeader?.RequestForQuotation, this.getView());
+          const oSelectedRFQForComparison = await Utils.getRequestForQuotation(
+            oCompareQuotationHeader?.RequestForQuotation,
+            this.getView(),
+          );
           this.getView().getModel('LocalModel').setProperty('/IsEditCompareQuotation', false);
           this.getView().getModel('LocalModel').setProperty('/RequestForQuotation', oSelectedRFQForComparison);
-          this.getView().getModel('LocalModel').setProperty('/RequestForQuotationItem', oSelectedRFQForComparison?.to_RequestForQuotationItem);
+          this.getView()
+            .getModel('LocalModel')
+            .setProperty('/RequestForQuotationItem', oSelectedRFQForComparison?.to_RequestForQuotationItem);
           this.getView().getModel('LocalModel').setProperty('/CompareQuotationHeader', oCompareQuotationHeader);
-          const aMergersItemsAndTerms = Utils.mergeTermsAndConditonTOCompareQuotationITem(_CompareQuotationItem, _TermsAndConditions);
+          const aMergersItemsAndTerms = Utils.mergeTermsAndConditonTOCompareQuotationITem(
+            _CompareQuotationItem,
+            _TermsAndConditions,
+          );
           this.getView().getModel('LocalModel').setProperty('/CompareQuotationItemData', aMergersItemsAndTerms);
           this.getView().getModel('LocalModel').setProperty('/CompareQuotationTermsConditionData', _TermsAndConditions);
           this.getView().getModel('LocalModel').setProperty('/Mode', 'DISPLAY');
-          const aPreDefinedTerms = this.getView().getModel('LocalModel').getProperty('/TermsAndConditionDialog/PreDefinedTermsAndCondition');
+          const aPreDefinedTerms = this.getView()
+            .getModel('LocalModel')
+            .getProperty('/TermsAndConditionDialog/PreDefinedTermsAndCondition');
 
           const updatedPredefineTerms = Utils.updatePredefinedTermsSelectable(aPreDefinedTerms, _TermsAndConditions);
-          this.getView().getModel('LocalModel').setProperty('/TermsAndConditionDialog/PreDefinedTermsAndCondition', updatedPredefineTerms);
+          this.getView()
+            .getModel('LocalModel')
+            .setProperty('/TermsAndConditionDialog/PreDefinedTermsAndCondition', updatedPredefineTerms);
           const aExistingKeys = Array.from(new Set(_TermsAndConditions.map((oTerm) => oTerm.KeyField)));
           const aCompareQuotationRowsData = Utils.transformDataforComparisonTable(aMergersItemsAndTerms, aExistingKeys);
-          this.getView().getModel('LocalModel').setProperty('/CompareQuotationActualRowsData', aCompareQuotationRowsData?.actualRows);
+          this.getView()
+            .getModel('LocalModel')
+            .setProperty('/CompareQuotationActualRowsData', aCompareQuotationRowsData?.actualRows);
           this.getView().getModel('LocalModel').setProperty('/CompareQuotationRowsData', aCompareQuotationRowsData?.filterRows);
           //this.generateCOlumnsForComparison(aCompareQuotationItems);
           // Utils.generateCOlumnsForComparisonTable(this.getView(), _CompareQuotationItem);
           Utils.generateCOlumnsForComparisonTable(this.getView(), aCompareQuotationRowsData?.filterRows);
-          const aSupplierQuotation = await Utils.getSupplierQuotationForRFQ(oCompareQuotationHeader?.RequestForQuotation, this.getView());
+          const aSupplierQuotation = await Utils.getSupplierQuotationForRFQ(
+            oCompareQuotationHeader?.RequestForQuotation,
+            this.getView(),
+          );
           const aSupplierQuotationData = Array.isArray(aSupplierQuotation) ? aSupplierQuotation : aSupplierQuotation?.value || [];
 
           const aSupplierQuotationItems = aSupplierQuotationData.flatMap((quotation) =>
@@ -129,7 +153,10 @@ sap.ui.define(
       },
       onCQDynamicAddItemPress: async function () {
         const oCompareQuotationHeader = this.getView().getModel('LocalModel').getProperty('/CompareQuotationHeader');
-        const aSupplierQuotation = await Utils.getSupplierQuotationForRFQ(oCompareQuotationHeader?.RequestForQuotation, this.getView());
+        const aSupplierQuotation = await Utils.getSupplierQuotationForRFQ(
+          oCompareQuotationHeader?.RequestForQuotation,
+          this.getView(),
+        );
         const aSupplierQuotationData = Array.isArray(aSupplierQuotation) ? aSupplierQuotation : aSupplierQuotation?.value || [];
 
         const aSupplierQuotationItems = aSupplierQuotationData.flatMap((quotation) =>
@@ -140,7 +167,10 @@ sap.ui.define(
           })),
         );
         const aCompareQuotationItemData = this.getView().getModel('LocalModel').getProperty('/CompareQuotationItemData');
-        const aFinalSupplierQuotationItemData = this.removeSelectedSupplierQuotationItemData(aSupplierQuotationItems, aCompareQuotationItemData);
+        const aFinalSupplierQuotationItemData = this.removeSelectedSupplierQuotationItemData(
+          aSupplierQuotationItems,
+          aCompareQuotationItemData,
+        );
         this.getView().getModel('LocalModel').setProperty('/SupplierQuotation', aSupplierQuotationData);
         this.getView().getModel('LocalModel').setProperty('/SupplierQuotationItem', aFinalSupplierQuotationItemData);
         this.oSQItemDialog ??= await this.loadFragment({
@@ -180,7 +210,9 @@ sap.ui.define(
         //     aCompareQuotationItemData.push(eachItem);
         // })
         const aCompareQuotationRowsData = Utils.transformDataforComparisonTable(aCompareQuotationItemData);
-        this.getView().getModel('LocalModel').setProperty('/CompareQuotationActualRowsData', aCompareQuotationRowsData?.actualRows);
+        this.getView()
+          .getModel('LocalModel')
+          .setProperty('/CompareQuotationActualRowsData', aCompareQuotationRowsData?.actualRows);
         this.getView().getModel('LocalModel').setProperty('/CompareQuotationRowsData', aCompareQuotationRowsData?.filterRows);
         //this.generateCOlumnsForComparison(aCompareQuotationItems);
         // Utils.generateCOlumnsForComparisonTable(this.getView(), aCompareQuotationItemData);
@@ -197,10 +229,18 @@ sap.ui.define(
         try {
           const oCompareQuotation = this.prepareCompareQuotationDataForSave();
           const aCompareQuotationRowsData = this.getView().getModel('LocalModel').getProperty('/CompareQuotationRowsData');
-          const aCompareQuotationActualRowsData = this.getView().getModel('LocalModel').getProperty('/CompareQuotationActualRowsData');
+          const aCompareQuotationActualRowsData = this.getView()
+            .getModel('LocalModel')
+            .getProperty('/CompareQuotationActualRowsData');
           //merge all the columns
-          const finalCompareQuotaionItemRows = Utils.mergeActualAndFilterRowData(aCompareQuotationActualRowsData, aCompareQuotationRowsData);
-          const aTransFormedCompareQuotationItem = Utils.reverseTransformCompareQuotationItemData(oCompareQuotation, finalCompareQuotaionItemRows);
+          const finalCompareQuotaionItemRows = Utils.mergeActualAndFilterRowData(
+            aCompareQuotationActualRowsData,
+            aCompareQuotationRowsData,
+          );
+          const aTransFormedCompareQuotationItem = Utils.reverseTransformCompareQuotationItemData(
+            oCompareQuotation,
+            finalCompareQuotaionItemRows,
+          );
           this.getView().getModel('LocalModel').setProperty('/CompareQuotationItemData', aTransFormedCompareQuotationItem);
           // const aTermsAndConditoin = Utils.generateTermsAndConditions(oCompareQuotation, finalCompareQuotaionItemRows, aPreDefinedTermsAndCondition);
           const aTermsAndConditoin = this.prepareTermsAndConditionDataForSave();
@@ -219,7 +259,12 @@ sap.ui.define(
             : null;
           var sMode = this.getView().getModel('LocalModel').getProperty('/Mode');
           // const oResult = await this.callActionUpsertCompareQuotation(oCompareQuotation, aCompareQuotationItem, aTermsAndConditoin, sMode);
-          const oResult = await this._oDataServiceUtil.saveQuotationComparison(oCompareQuotation, aCompareQuotationItem, aTermsAndConditoin, sMode);
+          const oResult = await this._oDataServiceUtil.saveQuotationComparison(
+            oCompareQuotation,
+            aCompareQuotationItem,
+            aTermsAndConditoin,
+            sMode,
+          );
           if (oResult?.status === 'Error') {
             this.getView().setBusy(false);
             sap.m.MessageToast.show(`Error on Create Quotation Comparison ${oResult?.message || oResult?.error}`);
@@ -318,7 +363,9 @@ sap.ui.define(
       },
       prepareTermsAndConditionDataForSave: function () {
         const aCompareQuotationItems = this.getView().getModel('LocalModel').getProperty('/CompareQuotationItemData') || [];
-        const aPreDefinedTerms = this.getView().getModel('LocalModel').getProperty('/TermsAndConditionDialog/PreDefinedTermsAndCondition');
+        const aPreDefinedTerms = this.getView()
+          .getModel('LocalModel')
+          .getProperty('/TermsAndConditionDialog/PreDefinedTermsAndCondition');
 
         const aTermsAndConditions = [];
         // const aTermsAndConditions = [];
@@ -415,6 +462,10 @@ sap.ui.define(
             //ModelNumber: item?.YY1_MaterialMake_PDI || '',
             ContactPerson: item?.ContactPerson || '',
             PhoneNumber: item?.PhoneNumber || '',
+            // ConvertedAmount: item?.PhoneNumber || '',
+            // Specifications1: item?.Specifications1 || '',
+            // Specifications2: item?.Specifications2 || '',
+            // Specifications3: item?.Specifications3 || '',
             // AccountAssignment:item?.AccountingAssignment || ''
           };
 
@@ -521,7 +572,9 @@ sap.ui.define(
             KeyField: keyField,
             KeyFieldDesc: keyFieldValue,
           });
-          this.getView().getModel('LocalModel').setProperty('/TermsAndConditionDialog/PreDefinedTermsAndCondition', aPreDefinedTermsAndCondition);
+          this.getView()
+            .getModel('LocalModel')
+            .setProperty('/TermsAndConditionDialog/PreDefinedTermsAndCondition', aPreDefinedTermsAndCondition);
           this.getView().getModel('LocalModel').setProperty('/TermsAndConditionDialog/IsAddNewTC', false);
         }
       },
@@ -534,13 +587,17 @@ sap.ui.define(
       },
       onAddTCFragmentAddPress: function () {
         // TermsAndConditionSelectedkey
-        const aSelectedKey = this.getView().getModel('LocalModel').getProperty('/TermsAndConditionDialog/TermsAndConditionSelectedkey');
+        const aSelectedKey = this.getView()
+          .getModel('LocalModel')
+          .getProperty('/TermsAndConditionDialog/TermsAndConditionSelectedkey');
 
         const aPreDefinedTermsAndCondition = this.getView()
           .getModel('LocalModel')
           .getProperty('/TermsAndConditionDialog/PreDefinedTermsAndCondition');
 
-        const aSelectedTermsAndConditionToApply = aPreDefinedTermsAndCondition.filter((oItem) => aSelectedKey.includes(oItem.KeyField));
+        const aSelectedTermsAndConditionToApply = aPreDefinedTermsAndCondition.filter((oItem) =>
+          aSelectedKey.includes(oItem.KeyField),
+        );
 
         const aCompareQuotationRowsData = this.getView().getModel('LocalModel').getProperty('/CompareQuotationRowsData');
         const aSupplierNames = Object.keys(aCompareQuotationRowsData[0]);

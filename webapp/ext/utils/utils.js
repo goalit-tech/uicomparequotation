@@ -23,18 +23,22 @@ sap.ui.define(['sap/ui/model/json/JSONModel'], function (JSONModel) {
         // "PhoneNumber",
       ];
       const aItemRows = [
-        'Supplierquotationitem',
         'SNo',
         'Description',
+        'Supplierquotationitem',
         'Material',
         'MaterialMake',
         'ModelNumber',
         'Specifications',
+        'Specifications1',
+        'Specifications2',
+        'Specifications3',
         'Quantity',
         'Units',
         'Currency',
         'TotalAmount',
         'ConversionRs',
+        'ConvertedAmount',
       ];
       aSingleRowsAtBottom.push(...(aNewProperties?.filter((prop) => !aSingleRowsAtBottom.includes(prop)) || []));
       const aRows = [];
@@ -105,7 +109,7 @@ sap.ui.define(['sap/ui/model/json/JSONModel'], function (JSONModel) {
         aRows.push(oRow);
       });
 
-      const nonVisibleRows = ['QuotationComparison', 'Supplierquotation', 'Supplierquotationitem', 'SNo', 'SupplierCode', 'SupplierName'];
+      const nonVisibleRows = ['QuotationComparison', 'Supplierquotation', 'SNo', 'SupplierCode', 'SupplierName'];
       const aVisibleRows = aRows.filter((row) => {
         const base = row.property?.split('_')[0];
         return !nonVisibleRows.includes(base);
@@ -164,7 +168,9 @@ sap.ui.define(['sap/ui/model/json/JSONModel'], function (JSONModel) {
     generateCOlumnsForComparisonTable: function (oView, aRows) {
       const oTable = oView?.byId('_IDGenQCFormFragmentDynamicUITable');
       oTable.removeAllColumns();
-      const aPredefinedTermsList = oView.getModel('LocalModel').getProperty('/TermsAndConditionDialog/PreDefinedTermsAndCondition');
+      const aPredefinedTermsList = oView
+        .getModel('LocalModel')
+        .getProperty('/TermsAndConditionDialog/PreDefinedTermsAndCondition');
       const headerRows = [
         // "AddDuties",
         'Description',
@@ -186,12 +192,10 @@ sap.ui.define(['sap/ui/model/json/JSONModel'], function (JSONModel) {
         'Units',
         'TotalAmount',
         'Currency',
-        // "ContactPerson",
-        // "PhoneNumber",
-        'ConversionRs',
+        'ConvertedAmount',
         'TermsAndConditions',
       ];
-
+      const editableHeaderRows = ['Specifications1', 'Specifications2', 'Specifications3', 'ConversionRs'];
       // Property column
       oTable.addColumn(
         new sap.ui.table.Column({
@@ -222,7 +226,8 @@ sap.ui.define(['sap/ui/model/json/JSONModel'], function (JSONModel) {
                   formatter: function (sProperty) {
                     const oBundle = oView.getModel('i18n').getResourceBundle();
                     const sPropertyName = sProperty?.split('_')[0];
-                    const sKeyFieldDesc = aPredefinedTermsList.find((oItem) => oItem.KeyField === sPropertyName)?.KeyFieldDesc || '';
+                    const sKeyFieldDesc =
+                      aPredefinedTermsList.find((oItem) => oItem.KeyField === sPropertyName)?.KeyFieldDesc || '';
                     let textToDisplay = '';
                     if (sKeyFieldDesc) {
                       textToDisplay = sKeyFieldDesc;
@@ -242,7 +247,7 @@ sap.ui.define(['sap/ui/model/json/JSONModel'], function (JSONModel) {
               }),
             ],
           }),
-          width: '11rem',
+          width: '20rem',
         }),
       );
 
@@ -252,25 +257,26 @@ sap.ui.define(['sap/ui/model/json/JSONModel'], function (JSONModel) {
         const oTemplate = new sap.m.HBox({
           items: [
             new sap.m.Input({
+              width: '18rem',
               value: '{LocalModel>' + sSupplierName + '}',
+              change: function (oEvent) {
+                const oInput = oEvent.getSource();
+                const oRowData = oInput.getBindingContext('LocalModel').getObject();
+                const sProperty = oRowData.property;
+                if (!sProperty.includes('_') || !sProperty.startsWith('ConversionRs')) {
+                  return;
+                }
+                const sSuffix = sProperty.split('_').pop();
+                this.callConversionRateAamount(oEvent, sSuffix, sSupplierName);
+              }.bind(this),
               editable: '{LocalModel>/IsEditCompareQuotation}',
-              //  {
-              //   parts: [{ path: 'LocalModel>property' }, { path: 'LocalModel>/IsEditCompareQuotation' }],
-              //   formatter: function (sProperty, bEditable) {
-              //     const sBaseProperty = sProperty?.split('_')[0];
-              //     // return !nonEditableHeaderRows.includes(sBaseProperty);
-              //   },
-              // },
               visible: {
                 parts: [{ path: 'LocalModel>property' }, { path: 'LocalModel>/IsEditCompareQuotation' }],
                 formatter: function (sProperty, bEditable) {
                   const headerRows = ['TermsAndConditions'];
                   const isUnderscore = sProperty?.includes('_');
-                  // if (isUnderscore) {
                   const iLastUnderscore = sProperty?.lastIndexOf('_');
                   const sField = isUnderscore ? sProperty?.substring(0, iLastUnderscore) : sProperty;
-                  // }
-                  // return bEditable && !headerRows.includes(sProperty);
                   return !nonEditableHeaderRows.includes(sField);
                 },
               },
@@ -281,7 +287,6 @@ sap.ui.define(['sap/ui/model/json/JSONModel'], function (JSONModel) {
                 parts: [{ path: 'LocalModel>property' }, { path: 'LocalModel>/IsEditCompareQuotation' }],
                 formatter: function (sProperty, bEditable) {
                   const headerRows = ['TermsAndConditions'];
-                  // return !bEditable || headerRows.includes(sProperty);
                   const isUnderscore = sProperty?.includes('_');
                   const iLastUnderscore = sProperty?.lastIndexOf('_');
                   const sField = isUnderscore ? sProperty?.substring(0, iLastUnderscore) : sProperty;
@@ -311,10 +316,37 @@ sap.ui.define(['sap/ui/model/json/JSONModel'], function (JSONModel) {
               wrapping: true,
             }),
             template: oTemplate,
-            width: '18rem',
+            width: '20rem',
           }),
         );
       });
+    },
+    callConversionRateAamount: function (oEvent, sSuffix, sSupplier) {
+      const oInput = oEvent.getSource();
+      const oRowData = oInput.getBindingContext('LocalModel').getObject();
+      const sProperty = oRowData.property;
+      const aData = oInput.getModel('LocalModel').getProperty('/CompareQuotationRowsData');
+      // Find TotalAmount_10
+      // const sSupplier = Object.keys(oRowData).find((key) => key !== 'property');
+      const oTotalAmountRow = aData.find((item) => {
+        return item.property === `TotalAmount_${sSuffix}` && Object.prototype.hasOwnProperty.call(item, sSupplier);
+      });
+      if (!oTotalAmountRow) {
+        return;
+      }
+      // Get supplier column name dynamically
+      const fTotalAmount = parseFloat(oTotalAmountRow[sSupplier] || 0);
+      // User entered value
+      const fConversionRate = parseFloat(oEvent.getParameter('value') || 0);
+      const fConvertedAmount = fTotalAmount * fConversionRate;
+      console.log('Total Amount:', fTotalAmount);
+      console.log('Conversion Rate:', fConversionRate);
+      console.log('Converted Amount:', fConvertedAmount);
+      const oConvertedRow = aData.find((item) => item.property === `ConvertedAmount_${sSuffix}`);
+      if (oConvertedRow) {
+        oConvertedRow[sSupplier] = fConvertedAmount.toFixed(2);
+        oInput.getModel('LocalModel').refresh(true);
+      }
     },
     reverseTransformCompareQuotationItemData: function (oCompareQuotation, aRows) {
       const aSupplierNames = Object.keys(aRows[0]).filter((sKey) => sKey !== 'property');
